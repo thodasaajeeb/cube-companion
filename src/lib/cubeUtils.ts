@@ -31,36 +31,54 @@ export const applyMove = (cube: CubeState, move: Move): CubeState => {
   switch (move) {
     case 'F': {
       newCube.F = rotateFaceCW(cube.F);
-      const temp = [cube.U[6], cube.U[7], cube.U[8]];
-      newCube.U[6] = cube.L[8];
-      newCube.U[7] = cube.L[5];
-      newCube.U[8] = cube.L[2];
-      newCube.R[0] = cube.U[6];
-      newCube.R[3] = cube.U[7];
-      newCube.R[6] = cube.U[8];
-      newCube.D[0] = cube.R[6];
-      newCube.D[1] = cube.R[3];
-      newCube.D[2] = cube.R[0];
-      newCube.L[2] = temp[2];
-      newCube.L[5] = temp[1];
-      newCube.L[8] = temp[0];
+      // U bottom row -> R left column (reversed)
+      // R left column -> D top row (reversed)
+      // D top row -> L right column
+      // L right column -> U bottom row (reversed)
+      const tempU = [cube.U[6], cube.U[7], cube.U[8]];
+      const tempR = [cube.R[0], cube.R[3], cube.R[6]];
+      const tempD = [cube.D[0], cube.D[1], cube.D[2]];
+      const tempL = [cube.L[2], cube.L[5], cube.L[8]];
+      
+      newCube.R[0] = tempU[0];
+      newCube.R[3] = tempU[1];
+      newCube.R[6] = tempU[2];
+      
+      newCube.D[0] = tempR[2];
+      newCube.D[1] = tempR[1];
+      newCube.D[2] = tempR[0];
+      
+      newCube.L[2] = tempD[0];
+      newCube.L[5] = tempD[1];
+      newCube.L[8] = tempD[2];
+      
+      newCube.U[6] = tempL[2];
+      newCube.U[7] = tempL[1];
+      newCube.U[8] = tempL[0];
       break;
     }
     case "F'": {
       newCube.F = rotateFaceCCW(cube.F);
-      const temp = [cube.U[6], cube.U[7], cube.U[8]];
-      newCube.U[6] = cube.R[0];
-      newCube.U[7] = cube.R[3];
-      newCube.U[8] = cube.R[6];
-      newCube.R[0] = cube.D[2];
-      newCube.R[3] = cube.D[1];
-      newCube.R[6] = cube.D[0];
-      newCube.D[0] = cube.L[2];
-      newCube.D[1] = cube.L[5];
-      newCube.D[2] = cube.L[8];
-      newCube.L[2] = temp[0];
-      newCube.L[5] = temp[1];
-      newCube.L[8] = temp[2];
+      const tempU = [cube.U[6], cube.U[7], cube.U[8]];
+      const tempR = [cube.R[0], cube.R[3], cube.R[6]];
+      const tempD = [cube.D[0], cube.D[1], cube.D[2]];
+      const tempL = [cube.L[2], cube.L[5], cube.L[8]];
+      
+      newCube.L[2] = tempU[2];
+      newCube.L[5] = tempU[1];
+      newCube.L[8] = tempU[0];
+      
+      newCube.U[6] = tempR[0];
+      newCube.U[7] = tempR[1];
+      newCube.U[8] = tempR[2];
+      
+      newCube.R[0] = tempD[2];
+      newCube.R[3] = tempD[1];
+      newCube.R[6] = tempD[0];
+      
+      newCube.D[0] = tempL[0];
+      newCube.D[1] = tempL[1];
+      newCube.D[2] = tempL[2];
       break;
     }
     case 'F2':
@@ -68,36 +86,50 @@ export const applyMove = (cube: CubeState, move: Move): CubeState => {
     
     case 'R': {
       newCube.R = rotateFaceCW(cube.R);
-      const temp = [cube.U[2], cube.U[5], cube.U[8]];
-      newCube.U[2] = cube.F[2];
-      newCube.U[5] = cube.F[5];
-      newCube.U[8] = cube.F[8];
-      newCube.B[0] = cube.U[8];
-      newCube.B[3] = cube.U[5];
-      newCube.B[6] = cube.U[2];
-      newCube.D[2] = cube.B[6];
-      newCube.D[5] = cube.B[3];
-      newCube.D[8] = cube.B[0];
-      newCube.F[2] = cube.D[2];
-      newCube.F[5] = cube.D[5];
-      newCube.F[8] = cube.D[8];
+      const tempU = [cube.U[2], cube.U[5], cube.U[8]];
+      const tempF = [cube.F[2], cube.F[5], cube.F[8]];
+      const tempD = [cube.D[2], cube.D[5], cube.D[8]];
+      const tempB = [cube.B[0], cube.B[3], cube.B[6]];
+      
+      newCube.U[2] = tempF[0];
+      newCube.U[5] = tempF[1];
+      newCube.U[8] = tempF[2];
+      
+      newCube.B[0] = tempU[2];
+      newCube.B[3] = tempU[1];
+      newCube.B[6] = tempU[0];
+      
+      newCube.D[2] = tempB[2];
+      newCube.D[5] = tempB[1];
+      newCube.D[8] = tempB[0];
+      
+      newCube.F[2] = tempD[0];
+      newCube.F[5] = tempD[1];
+      newCube.F[8] = tempD[2];
       break;
     }
     case "R'": {
       newCube.R = rotateFaceCCW(cube.R);
-      const temp = [cube.U[2], cube.U[5], cube.U[8]];
-      newCube.U[2] = cube.B[6];
-      newCube.U[5] = cube.B[3];
-      newCube.U[8] = cube.B[0];
-      newCube.B[0] = cube.D[8];
-      newCube.B[3] = cube.D[5];
-      newCube.B[6] = cube.D[2];
-      newCube.D[2] = cube.F[2];
-      newCube.D[5] = cube.F[5];
-      newCube.D[8] = cube.F[8];
-      newCube.F[2] = temp[0];
-      newCube.F[5] = temp[1];
-      newCube.F[8] = temp[2];
+      const tempU = [cube.U[2], cube.U[5], cube.U[8]];
+      const tempF = [cube.F[2], cube.F[5], cube.F[8]];
+      const tempD = [cube.D[2], cube.D[5], cube.D[8]];
+      const tempB = [cube.B[0], cube.B[3], cube.B[6]];
+      
+      newCube.F[2] = tempU[0];
+      newCube.F[5] = tempU[1];
+      newCube.F[8] = tempU[2];
+      
+      newCube.U[2] = tempB[2];
+      newCube.U[5] = tempB[1];
+      newCube.U[8] = tempB[0];
+      
+      newCube.B[0] = tempD[2];
+      newCube.B[3] = tempD[1];
+      newCube.B[6] = tempD[0];
+      
+      newCube.D[2] = tempF[0];
+      newCube.D[5] = tempF[1];
+      newCube.D[8] = tempF[2];
       break;
     }
     case 'R2':
@@ -142,36 +174,50 @@ export const applyMove = (cube: CubeState, move: Move): CubeState => {
     
     case 'L': {
       newCube.L = rotateFaceCW(cube.L);
-      const temp = [cube.U[0], cube.U[3], cube.U[6]];
-      newCube.U[0] = cube.B[8];
-      newCube.U[3] = cube.B[5];
-      newCube.U[6] = cube.B[2];
-      newCube.F[0] = cube.U[0];
-      newCube.F[3] = cube.U[3];
-      newCube.F[6] = cube.U[6];
-      newCube.D[0] = cube.F[0];
-      newCube.D[3] = cube.F[3];
-      newCube.D[6] = cube.F[6];
-      newCube.B[2] = cube.D[6];
-      newCube.B[5] = cube.D[3];
-      newCube.B[8] = cube.D[0];
+      const tempU = [cube.U[0], cube.U[3], cube.U[6]];
+      const tempF = [cube.F[0], cube.F[3], cube.F[6]];
+      const tempD = [cube.D[0], cube.D[3], cube.D[6]];
+      const tempB = [cube.B[2], cube.B[5], cube.B[8]];
+      
+      newCube.F[0] = tempU[0];
+      newCube.F[3] = tempU[1];
+      newCube.F[6] = tempU[2];
+      
+      newCube.D[0] = tempF[0];
+      newCube.D[3] = tempF[1];
+      newCube.D[6] = tempF[2];
+      
+      newCube.B[2] = tempD[2];
+      newCube.B[5] = tempD[1];
+      newCube.B[8] = tempD[0];
+      
+      newCube.U[0] = tempB[2];
+      newCube.U[3] = tempB[1];
+      newCube.U[6] = tempB[0];
       break;
     }
     case "L'": {
       newCube.L = rotateFaceCCW(cube.L);
-      const temp = [cube.U[0], cube.U[3], cube.U[6]];
-      newCube.U[0] = cube.F[0];
-      newCube.U[3] = cube.F[3];
-      newCube.U[6] = cube.F[6];
-      newCube.F[0] = cube.D[0];
-      newCube.F[3] = cube.D[3];
-      newCube.F[6] = cube.D[6];
-      newCube.D[0] = cube.B[8];
-      newCube.D[3] = cube.B[5];
-      newCube.D[6] = cube.B[2];
-      newCube.B[2] = temp[2];
-      newCube.B[5] = temp[1];
-      newCube.B[8] = temp[0];
+      const tempU = [cube.U[0], cube.U[3], cube.U[6]];
+      const tempF = [cube.F[0], cube.F[3], cube.F[6]];
+      const tempD = [cube.D[0], cube.D[3], cube.D[6]];
+      const tempB = [cube.B[2], cube.B[5], cube.B[8]];
+      
+      newCube.U[0] = tempF[0];
+      newCube.U[3] = tempF[1];
+      newCube.U[6] = tempF[2];
+      
+      newCube.F[0] = tempD[0];
+      newCube.F[3] = tempD[1];
+      newCube.F[6] = tempD[2];
+      
+      newCube.D[0] = tempB[2];
+      newCube.D[3] = tempB[1];
+      newCube.D[6] = tempB[0];
+      
+      newCube.B[2] = tempU[2];
+      newCube.B[5] = tempU[1];
+      newCube.B[8] = tempU[0];
       break;
     }
     case 'L2':
@@ -179,36 +225,50 @@ export const applyMove = (cube: CubeState, move: Move): CubeState => {
     
     case 'B': {
       newCube.B = rotateFaceCW(cube.B);
-      const temp = [cube.U[0], cube.U[1], cube.U[2]];
-      newCube.U[0] = cube.R[2];
-      newCube.U[1] = cube.R[5];
-      newCube.U[2] = cube.R[8];
-      newCube.R[2] = cube.D[8];
-      newCube.R[5] = cube.D[7];
-      newCube.R[8] = cube.D[6];
-      newCube.D[6] = cube.L[0];
-      newCube.D[7] = cube.L[3];
-      newCube.D[8] = cube.L[6];
-      newCube.L[0] = temp[2];
-      newCube.L[3] = temp[1];
-      newCube.L[6] = temp[0];
+      const tempU = [cube.U[0], cube.U[1], cube.U[2]];
+      const tempR = [cube.R[2], cube.R[5], cube.R[8]];
+      const tempD = [cube.D[6], cube.D[7], cube.D[8]];
+      const tempL = [cube.L[0], cube.L[3], cube.L[6]];
+      
+      newCube.R[2] = tempU[0];
+      newCube.R[5] = tempU[1];
+      newCube.R[8] = tempU[2];
+      
+      newCube.D[6] = tempR[0];
+      newCube.D[7] = tempR[1];
+      newCube.D[8] = tempR[2];
+      
+      newCube.L[0] = tempD[2];
+      newCube.L[3] = tempD[1];
+      newCube.L[6] = tempD[0];
+      
+      newCube.U[0] = tempL[2];
+      newCube.U[1] = tempL[1];
+      newCube.U[2] = tempL[0];
       break;
     }
     case "B'": {
       newCube.B = rotateFaceCCW(cube.B);
-      const temp = [cube.U[0], cube.U[1], cube.U[2]];
-      newCube.U[0] = cube.L[6];
-      newCube.U[1] = cube.L[3];
-      newCube.U[2] = cube.L[0];
-      newCube.L[0] = cube.D[6];
-      newCube.L[3] = cube.D[7];
-      newCube.L[6] = cube.D[8];
-      newCube.D[6] = cube.R[8];
-      newCube.D[7] = cube.R[5];
-      newCube.D[8] = cube.R[2];
-      newCube.R[2] = temp[0];
-      newCube.R[5] = temp[1];
-      newCube.R[8] = temp[2];
+      const tempU = [cube.U[0], cube.U[1], cube.U[2]];
+      const tempR = [cube.R[2], cube.R[5], cube.R[8]];
+      const tempD = [cube.D[6], cube.D[7], cube.D[8]];
+      const tempL = [cube.L[0], cube.L[3], cube.L[6]];
+      
+      newCube.L[0] = tempU[0];
+      newCube.L[3] = tempU[1];
+      newCube.L[6] = tempU[2];
+      
+      newCube.U[0] = tempR[2];
+      newCube.U[1] = tempR[1];
+      newCube.U[2] = tempR[0];
+      
+      newCube.R[2] = tempD[2];
+      newCube.R[5] = tempD[1];
+      newCube.R[8] = tempD[0];
+      
+      newCube.D[6] = tempL[0];
+      newCube.D[7] = tempL[1];
+      newCube.D[8] = tempL[2];
       break;
     }
     case 'B2':

@@ -1,18 +1,17 @@
 import { useState, useCallback } from 'react';
-import { CubeState, Move, CubeColor, SOLVED_CUBE } from '@/types/cube';
-import { applyMove, applyMoves, generateScramble, cloneCube, isSolved } from '@/lib/cubeUtils';
-import { solveWithTimeout } from '@/lib/cubeSolver';
+import { CubeState4x4, Move4x4, CubeColor4x4, SOLVED_CUBE_4X4 } from '@/types/cube4x4';
+import { applyMove4x4, applyMoves4x4, generateScramble4x4, cloneCube4x4, isSolved4x4, solve4x4 } from '@/lib/cube4x4Utils';
 
-export const useCube = () => {
-  const [cube, setCube] = useState<CubeState>(cloneCube(SOLVED_CUBE));
-  const [solution, setSolution] = useState<Move[] | null>(null);
+export const useCube4x4 = () => {
+  const [cube, setCube] = useState<CubeState4x4>(cloneCube4x4(SOLVED_CUBE_4X4));
+  const [solution, setSolution] = useState<Move4x4[] | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isSolving, setIsSolving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const reset = useCallback(() => {
-    setCube(cloneCube(SOLVED_CUBE));
+    setCube(cloneCube4x4(SOLVED_CUBE_4X4));
     setSolution(null);
     setCurrentStep(0);
     setIsPlaying(false);
@@ -20,32 +19,25 @@ export const useCube = () => {
   }, []);
 
   const scramble = useCallback(() => {
-    const moves = generateScramble(20);
-    setCube(applyMoves(cloneCube(SOLVED_CUBE), moves));
+    const moves = generateScramble4x4(40);
+    setCube(applyMoves4x4(cloneCube4x4(SOLVED_CUBE_4X4), moves));
     setSolution(null);
     setCurrentStep(0);
     setError(null);
   }, []);
 
-  const executeMove = useCallback((move: Move) => {
-    setCube(prev => applyMove(prev, move));
+  const executeMove = useCallback((move: Move4x4) => {
+    setCube(prev => applyMove4x4(prev, move));
     setSolution(null);
     setCurrentStep(0);
   }, []);
 
-  const setFaceColor = useCallback((face: keyof CubeState, index: number, color: CubeColor) => {
+  const setFaceColor = useCallback((face: keyof CubeState4x4, index: number, color: CubeColor4x4) => {
     setCube(prev => {
-      const newCube = cloneCube(prev);
+      const newCube = cloneCube4x4(prev);
       newCube[face][index] = color;
       return newCube;
     });
-    setSolution(null);
-    setCurrentStep(0);
-    setError(null);
-  }, []);
-
-  const setCubeState = useCallback((newCube: CubeState) => {
-    setCube(cloneCube(newCube));
     setSolution(null);
     setCurrentStep(0);
     setError(null);
@@ -58,7 +50,7 @@ export const useCube = () => {
     setCurrentStep(0);
 
     try {
-      const result = await solveWithTimeout(cube, 10000);
+      const result = await solve4x4(cube);
       
       if (result.success && result.solution) {
         setSolution(result.solution);
@@ -74,7 +66,7 @@ export const useCube = () => {
 
   const stepForward = useCallback(() => {
     if (solution && currentStep < solution.length) {
-      setCube(prev => applyMove(prev, solution[currentStep]));
+      setCube(prev => applyMove4x4(prev, solution[currentStep]));
       setCurrentStep(prev => prev + 1);
     }
   }, [solution, currentStep]);
@@ -83,11 +75,11 @@ export const useCube = () => {
     if (solution && currentStep > 0) {
       const moveToUndo = solution[currentStep - 1];
       const inverseMove = moveToUndo.includes("'") 
-        ? moveToUndo.replace("'", '') as Move
+        ? moveToUndo.replace("'", '') as Move4x4
         : moveToUndo.includes('2') 
           ? moveToUndo 
-          : (moveToUndo + "'") as Move;
-      setCube(prev => applyMove(prev, inverseMove));
+          : (moveToUndo + "'") as Move4x4;
+      setCube(prev => applyMove4x4(prev, inverseMove));
       setCurrentStep(prev => prev - 1);
     }
   }, [solution, currentStep]);
@@ -95,24 +87,20 @@ export const useCube = () => {
   const jumpToStep = useCallback((step: number) => {
     if (!solution) return;
     
-    // Rebuild cube state from scratch up to the target step
-    let newCube = cloneCube(SOLVED_CUBE);
+    let newCube = cloneCube4x4(SOLVED_CUBE_4X4);
     
-    // First apply scramble (reverse solution from current state)
-    // This is a simplification - in production, store original scrambled state
     for (let i = solution.length - 1; i >= 0; i--) {
       const move = solution[i];
       const inverseMove = move.includes("'") 
-        ? move.replace("'", '') as Move
+        ? move.replace("'", '') as Move4x4
         : move.includes('2') 
           ? move 
-          : (move + "'") as Move;
-      newCube = applyMove(newCube, inverseMove);
+          : (move + "'") as Move4x4;
+      newCube = applyMove4x4(newCube, inverseMove);
     }
     
-    // Apply solution up to target step
     for (let i = 0; i < step; i++) {
-      newCube = applyMove(newCube, solution[i]);
+      newCube = applyMove4x4(newCube, solution[i]);
     }
     
     setCube(newCube);
@@ -126,12 +114,11 @@ export const useCube = () => {
     isPlaying,
     isSolving,
     error,
-    isCubeSolved: isSolved(cube),
+    isCubeSolved: isSolved4x4(cube),
     reset,
     scramble,
     executeMove,
     setFaceColor,
-    setCubeState,
     solve,
     stepForward,
     stepBackward,

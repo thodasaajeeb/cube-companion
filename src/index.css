@@ -33,6 +33,10 @@
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
+    
+    /* Warning color */
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 10%;
 
     --border: 220 15% 20%;
     --input: 220 15% 18%;
