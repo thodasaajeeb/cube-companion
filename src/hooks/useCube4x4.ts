@@ -43,6 +43,13 @@ export const useCube4x4 = () => {
     setError(null);
   }, []);
 
+  const setCubeState = useCallback((newCube: CubeState4x4) => {
+    setCube(cloneCube4x4(newCube));
+    setSolution(null);
+    setCurrentStep(0);
+    setError(null);
+  }, []);
+
   const solve = useCallback(async () => {
     setIsSolving(true);
     setError(null);
@@ -119,6 +126,7 @@ export const useCube4x4 = () => {
     scramble,
     executeMove,
     setFaceColor,
+    setCubeState,
     solve,
     stepForward,
     stepBackward,
