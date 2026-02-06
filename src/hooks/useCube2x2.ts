@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { CubeState2x2, Move2x2, CubeColor2x2, SOLVED_CUBE_2X2 } from '@/types/cube2x2';
 import { applyMove2x2, applyMoves2x2, generateScramble2x2, cloneCube2x2, isSolved2x2, solve2x2 } from '@/lib/cube2x2Utils';
+import { CubeColor } from '@/types/cube';
 
 export const useCube2x2 = () => {
   const [cube, setCube] = useState<CubeState2x2>(cloneCube2x2(SOLVED_CUBE_2X2));
@@ -38,6 +39,13 @@ export const useCube2x2 = () => {
       newCube[face][index] = color;
       return newCube;
     });
+    setSolution(null);
+    setCurrentStep(0);
+    setError(null);
+  }, []);
+
+  const setCubeState = useCallback((newCube: CubeState2x2) => {
+    setCube(cloneCube2x2(newCube));
     setSolution(null);
     setCurrentStep(0);
     setError(null);
@@ -119,6 +127,7 @@ export const useCube2x2 = () => {
     scramble,
     executeMove,
     setFaceColor,
+    setCubeState,
     solve,
     stepForward,
     stepBackward,
