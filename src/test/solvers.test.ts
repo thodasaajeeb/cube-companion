@@ -50,14 +50,14 @@ describe('3x3 Solver', () => {
 
 describe('4x4 Solver', () => {
   it('returns success for solved cube', async () => {
-    const result = await solve4x4(cloneCube4x4(SOLVED_CUBE_4X4));
+    const result = await solve4x4Reduction(cloneCube4x4(SOLVED_CUBE_4X4));
     expect(result.success).toBe(true);
     expect(result.solution).toEqual([]);
   });
 
   it('returns error for scrambled cube (not yet implemented)', async () => {
     const scrambled = applyMoves4x4(cloneCube4x4(SOLVED_CUBE_4X4), generateScramble4x4(5));
-    const result = await solve4x4(scrambled);
+    const result = await solve4x4Reduction(scrambled);
     // 4x4 solver is a placeholder - should return an error
     expect(result.success).toBe(false);
     expect(result.error).toBeDefined();
