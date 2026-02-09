@@ -309,25 +309,29 @@ export async function solve4x4Reduction(cube: CubeState4x4): Promise<{
 }> {
   if (isSolved4x4(cube)) return { success: true, solution: [] };
 
-  const centerResult = solveCenters(cube, 5000);
-  if (!centerResult) {
-    return { success: false, error: 'Could not solve centers. Try a shorter scramble or check cube configuration.' };
-  }
+  try {
+    const centerResult = solveCenters(cube, 4000);
+    if (!centerResult) {
+      return { success: false, error: 'Could not solve centers. Try a shorter scramble or check cube configuration.' };
+    }
 
-  const edgeResult = pairEdges(centerResult.cube, 5000);
-  if (!edgeResult) {
-    return { success: false, error: 'Could not pair edges. Try a shorter scramble.' };
-  }
+    const edgeResult = pairEdges(centerResult.cube, 4000);
+    if (!edgeResult) {
+      return { success: false, error: 'Could not pair edges. Try a shorter scramble.' };
+    }
 
-  const finalResult = await solveAs3x3(edgeResult.cube);
-  if (!finalResult) {
-    return { success: false, error: 'Could not complete 3x3 phase. Try a shorter scramble.' };
-  }
+    const finalResult = await solveAs3x3(edgeResult.cube);
+    if (!finalResult) {
+      return { success: false, error: 'Could not complete 3x3 phase. Try a shorter scramble.' };
+    }
 
-  if (!isSolved4x4(finalResult.cube)) {
-    return { success: false, error: 'Solver did not fully solve the cube. Try a shorter scramble.' };
-  }
+    if (!isSolved4x4(finalResult.cube)) {
+      return { success: false, error: 'Solver did not fully solve the cube. Try a shorter scramble.' };
+    }
 
-  const solution = [...centerResult.moves, ...edgeResult.moves, ...finalResult.moves];
-  return { success: true, solution };
+    const solution = [...centerResult.moves, ...edgeResult.moves, ...finalResult.moves];
+    return { success: true, solution };
+  } catch (e) {
+    return { success: false, error: 'Solver encountered an error. Try resetting and using a shorter scramble.' };
+  }
 }

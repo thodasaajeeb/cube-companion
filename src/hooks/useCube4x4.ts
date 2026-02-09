@@ -20,7 +20,7 @@ export const useCube4x4 = () => {
   }, []);
 
   const scramble = useCallback(() => {
-    const moves = generateScramble4x4(40);
+    const moves = generateScramble4x4(8);
     setCube(applyMoves4x4(cloneCube4x4(SOLVED_CUBE_4X4), moves));
     setSolution(null);
     setCurrentStep(0);
