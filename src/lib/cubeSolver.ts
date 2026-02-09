@@ -64,37 +64,29 @@ export const validateCube = (cube: CubeState): { valid: boolean; error?: string 
 // Simple IDA* search with limited depth
 const idaSearch = (
   startCube: CubeState,
-  maxDepth: number = 12,
-  timeLimitMs: number = 5000
+  maxDepth: number = 20,
+  timeLimitMs: number = 8000
 ): Move[] | null => {
   if (isSolved(startCube)) return [];
   
   const startTime = Date.now();
   let timedOut = false;
-  const visited = new Map<string, number>();
-  
-  const cubeToString = (cube: CubeState): string => {
-    return Object.values(cube).flat().join('');
-  };
+  let nodeCount = 0;
+  const path: Move[] = [];
   
   const search = (
     cube: CubeState,
-    moves: Move[],
     depth: number,
     lastMove: Move | null
-  ): Move[] | null => {
-    if (timedOut) return null;
-    if (Date.now() - startTime > timeLimitMs) {
+  ): boolean => {
+    if (timedOut) return false;
+    nodeCount++;
+    if (nodeCount % 50000 === 0 && Date.now() - startTime > timeLimitMs) {
       timedOut = true;
-      return null;
+      return false;
     }
-    if (isSolved(cube)) return moves;
-    if (depth === 0) return null;
-    
-    const cubeStr = cubeToString(cube);
-    const prevDepth = visited.get(cubeStr);
-    if (prevDepth !== undefined && prevDepth >= depth) return null;
-    visited.set(cubeStr, depth);
+    if (isSolved(cube)) return true;
+    if (depth === 0) return false;
     
     for (const move of ALL_MOVES) {
       if (lastMove) {
@@ -111,18 +103,19 @@ const idaSearch = (
       }
       
       const newCube = applyMove(cube, move);
-      const result = search(newCube, [...moves, move], depth - 1, move);
-      if (result) return result;
+      path.push(move);
+      if (search(newCube, depth - 1, move)) return true;
+      path.pop();
     }
     
-    return null;
+    return false;
   };
   
   for (let depth = 1; depth <= maxDepth; depth++) {
     if (timedOut) break;
-    visited.clear();
-    const result = search(startCube, [], depth, null);
-    if (result) return result;
+    path.length = 0;
+    nodeCount = 0;
+    if (search(startCube, depth, null)) return [...path];
   }
   
   return null;
