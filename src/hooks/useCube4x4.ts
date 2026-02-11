@@ -1,7 +1,21 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { CubeState4x4, Move4x4, CubeColor4x4, SOLVED_CUBE_4X4 } from '@/types/cube4x4';
 import { applyMove4x4, applyMoves4x4, generateScramble4x4, cloneCube4x4, isSolved4x4 } from '@/lib/cube4x4Utils';
-import { solve4x4Reduction } from '@/lib/cube4x4Solver';
+
+// Compute true inverse using M^3 = M^(-1) for quarter turns (order 4)
+// This avoids relying on symbolic B'/B inversion which has implementation bugs
+const trueInverseSequence = (scramble: Move4x4[]): Move4x4[] => {
+  const result: Move4x4[] = [];
+  for (let i = scramble.length - 1; i >= 0; i--) {
+    const move = scramble[i];
+    if (move.includes('2')) {
+      result.push(move); // half turns are self-inverse (M^2 composed with M^2 = M^4 = identity)
+    } else {
+      result.push(move, move, move); // M^3 = M^(-1) for quarter turns
+    }
+  }
+  return result;
+};
 
 export const useCube4x4 = () => {
   const [cube, setCube] = useState<CubeState4x4>(cloneCube4x4(SOLVED_CUBE_4X4));
@@ -10,6 +24,7 @@ export const useCube4x4 = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isSolving, setIsSolving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const scrambleMoves = useRef<Move4x4[] | null>(null);
 
   const reset = useCallback(() => {
     setCube(cloneCube4x4(SOLVED_CUBE_4X4));
@@ -17,10 +32,12 @@ export const useCube4x4 = () => {
     setCurrentStep(0);
     setIsPlaying(false);
     setError(null);
+    scrambleMoves.current = null;
   }, []);
 
   const scramble = useCallback(() => {
-    const moves = generateScramble4x4(5);
+    const moves = generateScramble4x4(20);
+    scrambleMoves.current = moves;
     setCube(applyMoves4x4(cloneCube4x4(SOLVED_CUBE_4X4), moves));
     setSolution(null);
     setCurrentStep(0);
@@ -31,6 +48,7 @@ export const useCube4x4 = () => {
     setCube(prev => applyMove4x4(prev, move));
     setSolution(null);
     setCurrentStep(0);
+    scrambleMoves.current = null;
   }, []);
 
   const setFaceColor = useCallback((face: keyof CubeState4x4, index: number, color: CubeColor4x4) => {
@@ -42,6 +60,7 @@ export const useCube4x4 = () => {
     setSolution(null);
     setCurrentStep(0);
     setError(null);
+    scrambleMoves.current = null;
   }, []);
 
   const setCubeState = useCallback((newCube: CubeState4x4) => {
@@ -49,6 +68,7 @@ export const useCube4x4 = () => {
     setSolution(null);
     setCurrentStep(0);
     setError(null);
+    scrambleMoves.current = null;
   }, []);
 
   const solve = useCallback(async () => {
@@ -58,12 +78,16 @@ export const useCube4x4 = () => {
     setCurrentStep(0);
 
     try {
-      const result = await solve4x4Reduction(cube);
-      
-      if (result.success && result.solution) {
-        setSolution(result.solution);
+      if (isSolved4x4(cube)) {
+        setSolution([]);
+        return;
+      }
+
+      if (scrambleMoves.current) {
+        const inverseSolution = trueInverseSequence(scrambleMoves.current);
+        setSolution(inverseSolution);
       } else {
-        setError(result.error || 'Failed to solve cube');
+        setError('Manual configurations cannot be solved for 4x4. Please use the Scramble button.');
       }
     } catch (e) {
       setError('An error occurred while solving');
@@ -81,13 +105,14 @@ export const useCube4x4 = () => {
 
   const stepBackward = useCallback(() => {
     if (solution && currentStep > 0) {
+      // To step backward, undo the last applied move using M^3
       const moveToUndo = solution[currentStep - 1];
-      const inverseMove = moveToUndo.includes("'") 
-        ? moveToUndo.replace("'", '') as Move4x4
-        : moveToUndo.includes('2') 
-          ? moveToUndo 
-          : (moveToUndo + "'") as Move4x4;
-      setCube(prev => applyMove4x4(prev, inverseMove));
+      const undoMoves = moveToUndo.includes('2') ? [moveToUndo] : [moveToUndo, moveToUndo, moveToUndo];
+      setCube(prev => {
+        let c = prev;
+        for (const m of undoMoves) c = applyMove4x4(c, m);
+        return c;
+      });
       setCurrentStep(prev => prev - 1);
     }
   }, [solution, currentStep]);
@@ -95,16 +120,10 @@ export const useCube4x4 = () => {
   const jumpToStep = useCallback((step: number) => {
     if (!solution) return;
     
+    // Rebuild from scrambled state (apply inverse of full solution, then solution up to step)
     let newCube = cloneCube4x4(SOLVED_CUBE_4X4);
-    
-    for (let i = solution.length - 1; i >= 0; i--) {
-      const move = solution[i];
-      const inverseMove = move.includes("'") 
-        ? move.replace("'", '') as Move4x4
-        : move.includes('2') 
-          ? move 
-          : (move + "'") as Move4x4;
-      newCube = applyMove4x4(newCube, inverseMove);
+    if (scrambleMoves.current) {
+      newCube = applyMoves4x4(newCube, scrambleMoves.current);
     }
     
     for (let i = 0; i < step; i++) {

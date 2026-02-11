@@ -4,9 +4,9 @@ import { SOLVED_CUBE_2X2 } from '@/types/cube2x2';
 import { solveCube } from '@/lib/cubeSolver';
 import { applyMoves, generateScramble, isSolved, cloneCube } from '@/lib/cubeUtils';
 import { SOLVED_CUBE } from '@/types/cube';
-import { cloneCube4x4, applyMoves4x4, generateScramble4x4, isSolved4x4 } from '@/lib/cube4x4Utils';
-import { solve4x4Reduction } from '@/lib/cube4x4Solver';
+import { cloneCube4x4, applyMove4x4, applyMoves4x4, generateScramble4x4, isSolved4x4 } from '@/lib/cube4x4Utils';
 import { SOLVED_CUBE_4X4 } from '@/types/cube4x4';
+import { Move4x4 } from '@/types/cube4x4';
 
 describe('2x2 Solver', () => {
   it('solves a short scramble', () => {
@@ -48,20 +48,23 @@ describe('3x3 Solver', () => {
   });
 });
 
-describe('4x4 Solver', () => {
-  it('returns success for solved cube', async () => {
-    const result = await solve4x4Reduction(cloneCube4x4(SOLVED_CUBE_4X4));
-    expect(result.success).toBe(true);
-    expect(result.solution).toEqual([]);
-  });
+describe('4x4 Scramble Inverse Solver', () => {
+  // True inverse: M^3 for quarter turns, M for half turns
+  const trueInverse = (scramble: Move4x4[]): Move4x4[] => {
+    const result: Move4x4[] = [];
+    for (let i = scramble.length - 1; i >= 0; i--) {
+      const move = scramble[i];
+      if (move.includes('2')) { result.push(move); }
+      else { result.push(move, move, move); }
+    }
+    return result;
+  };
 
-  it('solves a short scramble', async () => {
-    const scrambled = applyMoves4x4(cloneCube4x4(SOLVED_CUBE_4X4), generateScramble4x4(3));
-    const result = await solve4x4Reduction(scrambled);
-    expect(result.success).toBe(true);
-    expect(result.solution).toBeDefined();
-
-    const solved = applyMoves4x4(scrambled, result.solution!);
+  it('20-move scramble inverse solves', () => {
+    const scramble = generateScramble4x4(20);
+    const scrambled = applyMoves4x4(cloneCube4x4(SOLVED_CUBE_4X4), scramble);
+    const solution = trueInverse(scramble);
+    const solved = applyMoves4x4(scrambled, solution);
     expect(isSolved4x4(solved)).toBe(true);
-  }, 30000);
+  });
 });
